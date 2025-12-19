@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Online Quiz</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="style.css" />
+   <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <script src="script.js" defer></script>
+  </head>
+  <body>
+   <!-- Start Screen -->
+<div id="start-screen" class="card card-enter">
+  <div class="start-hero">
+    <!-- LEFT SIDE: TEXT -->
+   <div class="start-hero-left">
+  <h1>Quiz Arcade</h1>
+  <!-- Small pill quote under the title -->
+  <span class="hero-badge" id="hero-badge"></span>
+</div>
+
+
+    <!-- RIGHT SIDE: VISUAL -->
+    <div class="start-hero-right">
+      <div class="hero-orbit">
+        <div class="orbit-ring orbit-ring-1"></div>
+        <div class="orbit-ring orbit-ring-2"></div>
+        <div class="orbit-dot orbit-dot-1"></div>
+        <div class="orbit-dot orbit-dot-2"></div>
+        <div class="orbit-core">?</div>
+      </div>
+    </div>
+  </div>
+
+  <p class="subtitle choose-subtitle">
+     Pick your challenge level:
+  </p>
+
+  <!-- Difficulty Cards -->
+  <div class="difficulty-tabs">
+    <button class="difficulty-btn mode-card" data-difficulty="easy">
+      <div class="mode-title">Easy</div>
+      
+    </button>
+
+    <button class="difficulty-btn mode-card" data-difficulty="medium">
+      <div class="mode-title">Medium</div>
+      
+    </button>
+
+    <button class="difficulty-btn mode-card" data-difficulty="hard">
+      <div class="mode-title">Hard</div>
+      
+    </button>
+  </div>
+
+  <div class="start-btn-wrap">
+    <button id="start-btn">Start Quiz</button>
+  </div>
+</div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-screen" class="card hidden">
+      <div class="quiz-header">
+        <button id="home-btn" class="home-btn">
+          <span class="home-arrow">←</span>
+          <span class="home-text">Home</span>
+        </button>
+        <h1 class="quiz-title">Quiz</h1>
+      </div>
+
+      <div class="top-bar">
+        <div class="question-counter">
+          Question <span id="current-question">1</span> /
+          <span id="total-questions">0</span>
+        </div>
+
+        <div class="top-right">
+          <button id="refresh-btn" class="top-control-btn">Refresh</button>
+          <div class="timer">
+            Time Left: <span id="time">0:00</span>
+          </div>
+        </div>
+      </div>
+
+      <div id="question-container">
+        <h2 id="question-text"></h2>
+        <div id="options-container"></div>
+      </div>
+
+      <!-- Question number palette -->
+      <div id="question-palette" class="question-palette"></div>
+
+      <div class="buttons">
+        <button id="prev-btn" class="ghost-btn">Prev</button>
+        <div class="buttons-right">
+          <button id="next-btn">Next</button>
+          <button id="end-btn" class="danger-btn">End Quiz</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Result Screen -->
+    <div id="result-screen" class="card hidden">
+      <div class="result-header">
+        <h1>Quiz Result</h1>
+        <p id="score-text"></p>
+        <p id="detail-text"></p>
+      </div>
+
+      <div id="summary-box" class="summary-box"></div>
+      <div id="review-container"></div>
+
+      <div class="result-footer">
+        <button id="restart-btn">Restart Quiz</button>
+      </div>
+    </div>
+  </body>
+</html>

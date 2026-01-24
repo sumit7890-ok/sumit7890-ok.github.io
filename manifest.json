@@ -1,0 +1,17 @@
+{
+  "name": "Quiz Arcade",
+  "short_name": "Quiz Arcade",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "dir": "ltr",
+  "lang": "en",
+  "display_override": [
+    "standalone",
+    "fullscreen",
+    "window-controls-overlay"
+  ]
+}

@@ -90,4 +90,5 @@ If you’re viewing this as an interviewer or reviewer, I’d recommend:
 - Skimming **`style.css`** to see how the aesthetic and responsive layout are built from scratch.  
 
 - Simply **playing one full run** — the experience from selecting a mode to reading your mistakes is the core of the project.
-- [Click here to play!] (https://github.com/sumit7890-ok/sumit7890-ok.github.io)
+- [Click here to play!](https://github.com/sumit7890-ok/sumit7890-ok.github.io)
+

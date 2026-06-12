@@ -1,13 +1,25 @@
+// ====== CONFIG ======
+
+// Random question count per game (safe for API)
 const MIN_QUESTIONS = 10;
 const MAX_QUESTIONS = 30;
+
+// Random time: 15–25 seconds per question
 const MIN_SECONDS_PER_QUESTION = 15;
 const MAX_SECONDS_PER_QUESTION = 25;
 
+// Difficulty mapping for label and Open Trivia DB
+// Docs: https://opentdb.com/api_config.php
 const DIFFICULTY_CONFIG = {
   easy: { label: "Easy", apiDifficulty: "easy" },
   medium: { label: "Medium", apiDifficulty: "medium" },
+  intermediate: { label: "Intermediate", apiDifficulty: "medium" },
   hard: { label: "Hard", apiDifficulty: "hard" },
+  expert: { label: "Expert", apiDifficulty: "hard" }
 };
+
+
+
 
 // ====== STATE ======
 let quizData = [];
@@ -17,9 +29,8 @@ let timeLeft = 0;
 let timerId = null;
 let userAnswers = [];
 
-// Start as null so no button is active by default
+// Important: Start as null so no button is blue by default
 let selectedDifficulty = null;
-
 // ====== DOM ELEMENTS ======
 const startScreen = document.getElementById("start-screen");
 const quizScreen = document.getElementById("quiz-screen");
@@ -39,7 +50,6 @@ const currentQuestionSpan = document.getElementById("current-question");
 const totalQuestionsSpan = document.getElementById("total-questions");
 
 const timeSpan = document.getElementById("time");
-const timerContainer = document.querySelector(".timer");
 const scoreText = document.getElementById("score-text");
 const detailText = document.getElementById("detail-text");
 const reviewContainer = document.getElementById("review-container");
@@ -47,46 +57,13 @@ const summaryBox = document.getElementById("summary-box");
 const paletteContainer = document.getElementById("question-palette");
 
 const difficultyButtons = document.querySelectorAll(".difficulty-btn");
-const heroBadgeEl = document.getElementById("hero-badge");
-
-const HERO_BADGE_TEXTS = [
-  "Calm mind • Quick answers",
-  "Warm‑up run • No pressure",
-  "Focus • Guess • Learn",
-  "Think slow • Score fast",
-  "One question • One win",
-  "Practice now • Ace later",
-  "Brain on • Doubt off",
-  "Guess • Learn • Repeat",
-  "Breathe • Read • Respond",
-  "Sharp mind • Soft pressure",
-  "Stay steady • Stay smart",
-  "Soft focus • Sharp mind",
-  "Quiet mind • Loud ideas",
-  "Cold hands • Warm brain",
-  "Moonlit calm • Solar focus",
-  "Gentle pace • Deep thinking",
-  "Low noise • High clarity",
-  "Soft glow • Strong logic",
-  "Neon dreams • Clear answers",
-  "Calm waves • Quick reflex",
-  "Still heart • Fast mind",
-  "Silent room • Loud genius"
-];
-
-function setRandomHeroText() {
-  if (!heroBadgeEl) return;
-  heroBadgeEl.textContent =
-    HERO_BADGE_TEXTS[Math.floor(Math.random() * HERO_BADGE_TEXTS.length)];
-}
-
-setRandomHeroText();
 
 // ====== EVENT LISTENERS ======
 startBtn.addEventListener("click", startQuiz);
 nextBtn.addEventListener("click", handleNextQuestion);
 prevBtn.addEventListener("click", handlePrevQuestion);
 
+// End quiz immediately (no confirm)
 endBtn.addEventListener("click", () => endQuiz(false));
 
 // Refresh quiz immediately (new random questions & time)
@@ -102,19 +79,12 @@ homeBtn.addEventListener("click", () => {
 
 restartBtn.addEventListener("click", restartQuiz);
 
-// Difficulty tabs 
+// Difficulty tabs
 difficultyButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
-    const isAlreadyActive = btn.classList.contains("active");
-
+    selectedDifficulty = btn.dataset.difficulty;
     difficultyButtons.forEach((b) => b.classList.remove("active"));
-
-    if (isAlreadyActive) {
-      selectedDifficulty = null;
-    } else {
-      btn.classList.add("active");
-      selectedDifficulty = btn.dataset.difficulty;
-    }
+    btn.classList.add("active");
   });
 });
 
@@ -149,13 +119,16 @@ function formatTime(totalSeconds) {
   return `${minutes}:${String(seconds).padStart(2, "0")}`;
 }
 
+// Fetch random questions with Auto-Retry for Rate Limits
 async function loadQuestions(amount, difficultyKey) {
   const cfg = DIFFICULTY_CONFIG[difficultyKey] || DIFFICULTY_CONFIG.easy;
   const diffParam = cfg.apiDifficulty
     ? `&difficulty=${encodeURIComponent(cfg.apiDifficulty)}`
     : "";
 
+  // Helper function to fetch with retries
   const fetchWithRetry = async (retries = 1) => {
+    // We add a timestamp t=${Date.now()} to ensure questions are random
     const url = `https://opentdb.com/api.php?amount=${amount}&type=multiple${diffParam}&t=${Date.now()}`;
     console.log(`[Quiz] Fetching ${amount} ${cfg.label} questions from:`, url);
 
@@ -164,26 +137,28 @@ async function loadQuestions(amount, difficultyKey) {
 
     const data = await res.json();
 
+    // CODE 5: Rate Limit (Too many requests)
+    // If this happens, we wait 5 seconds and try one more time automatically.
     if (data.response_code === 5) {
       if (retries > 0) {
         console.warn("Server busy (Rate Limit). Retrying in 5 seconds...");
-        if (startBtn) startBtn.textContent = "Please wait...";
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        // Change button text to let user know
+        if (typeof startBtn !== 'undefined') startBtn.textContent = "Please wait...";
+        
+        // Wait 5 seconds
+        await new Promise(resolve => setTimeout(resolve, 5000));
         return fetchWithRetry(retries - 1);
       } else {
-        throw new Error(
-          "The quiz server is busy. Please wait 10 seconds and try again."
-        );
+        throw new Error("The quiz server is busy. Please wait 10 seconds and try again.");
       }
     }
 
-    // CODE 1: Not enough questions
+    // CODE 1: Not enough questions (Common in 'Hard' difficulty)
     if (data.response_code === 1) {
-      throw new Error(
-        `Not enough '${cfg.label}' questions available. Try a lower difficulty.`
-      );
+      throw new Error(`Not enough '${cfg.label}' questions available. Try a lower difficulty.`);
     }
 
+    // Generic API error
     if (data.response_code !== 0) {
       throw new Error(`API Error Code: ${data.response_code}`);
     }
@@ -191,8 +166,10 @@ async function loadQuestions(amount, difficultyKey) {
     return data.results;
   };
 
+  // Start the fetch
   const results = await fetchWithRetry();
 
+  // Process the results
   const questions = results.map((q) => {
     const decodedQuestion = decodeHTML(q.question);
     const incorrect = q.incorrect_answers.map(decodeHTML);
@@ -244,13 +221,20 @@ function buildQuestionPalette() {
 
 function updatePaletteStatus() {
   const buttons = paletteContainer.querySelectorAll(".palette-btn");
+
   buttons.forEach((btn, i) => {
-    btn.classList.remove("current", "answered", "unanswered");
+    btn.classList.remove(
+      "current",
+      "answered",
+      "unanswered"
+    );
+
     if (i === currentQuestionIndex) {
       btn.classList.add("current");
-    }
-    const ans = userAnswers[i];
-    if (ans !== null && ans !== undefined) {
+    } else if (
+      userAnswers[i] !== null &&
+      userAnswers[i] !== undefined
+    ) {
       btn.classList.add("answered");
     } else {
       btn.classList.add("unanswered");
@@ -268,15 +252,15 @@ function jumpToQuestion(targetIndex) {
 // ====== MAIN FLOW ======
 async function startQuiz() {
   console.log(`[Quiz] Starting quiz with difficulty: ${selectedDifficulty}`);
-
+  
   if (!selectedDifficulty) {
     alert("Please select a difficulty level first!");
     return;
   }
 
   const cfg = DIFFICULTY_CONFIG[selectedDifficulty] || DIFFICULTY_CONFIG.easy;
-  const originalText =
-    startBtn && startBtn.textContent ? startBtn.textContent : "Start Quiz";
+  console.log(`[Quiz] Difficulty config:`, cfg);
+  const originalText = startBtn && startBtn.textContent ? startBtn.textContent : "Start Quiz";
 
   if (startBtn) {
     startBtn.disabled = true;
@@ -333,11 +317,6 @@ async function startQuiz() {
 
   if (homeBtn) homeBtn.classList.add("visible");
 
-  if (timerContainer) {
-  timerContainer.classList.remove("danger");
-}
-
-startTimer();
   startTimer();
   renderQuestion();
 
@@ -354,15 +333,6 @@ function startTimer() {
     timeLeft--;
     timeSpan.textContent = formatTime(timeLeft);
 
-    // Toggle color based on remaining time
-    if (timerContainer) {
-      if (timeLeft < 45) {
-        timerContainer.classList.add("danger");
-      } else {
-        timerContainer.classList.remove("danger");
-      }
-    }
-
     if (timeLeft <= 0) {
       timeLeft = 0;
       timeSpan.textContent = formatTime(timeLeft);
@@ -372,7 +342,6 @@ function startTimer() {
   }, 1000);
 }
 
-// ====== renderQuestion ======
 function renderQuestion() {
   const currentQuestion = quizData[currentQuestionIndex];
 
@@ -407,26 +376,20 @@ function renderQuestion() {
   }
 
   prevBtn.disabled = currentQuestionIndex === 0;
-
-  const isLast = currentQuestionIndex === quizData.length - 1;
-  nextBtn.textContent = isLast ? "Submit" : "Next";
-  nextBtn.disabled = false;
+  nextBtn.disabled = currentQuestionIndex === quizData.length - 1;
 
   updatePaletteStatus();
 }
 
-// ====== FIXED handleNextQuestion ======
 function handleNextQuestion() {
   saveCurrentAnswer();
-
-  const isLast = currentQuestionIndex === quizData.length - 1;
-  if (isLast) {
-    endQuiz(false);
-    return;
-  }
-
   currentQuestionIndex++;
-  renderQuestion();
+
+  if (currentQuestionIndex < quizData.length) {
+    renderQuestion();
+  } else {
+    endQuiz(false);
+  }
 }
 
 function handlePrevQuestion() {
@@ -497,8 +460,6 @@ function renderReview() {
 
   quizData.forEach((q, index) => {
     const userAns = userAnswers[index];
-
-    // Skip correct answers
     if (userAns === q.answer) return;
 
     wrongCount++;
@@ -540,16 +501,6 @@ function renderReview() {
   }
 }
 
-  // If everything was correct, show a single "all correct" message
-  if (wrongCount === 0) {
-    const allCorrect = document.createElement("div");
-    allCorrect.className = "all-correct";
-    allCorrect.textContent =
-      "Perfect! You answered every question correctly. Great job.";
-    reviewContainer.appendChild(allCorrect);
-  }
-
-
 function restartQuiz() {
   resultScreen.classList.add("card-leave");
 
@@ -564,7 +515,6 @@ function restartQuiz() {
       homeBtn.classList.remove("visible");
       document.body.classList.remove("showing-result");
       playCardEnter(startScreen);
-      setRandomHeroText(); 
     },
     { once: true }
   );
@@ -586,7 +536,6 @@ function goHome() {
       homeBtn.classList.remove("visible");
       document.body.classList.remove("showing-result");
       playCardEnter(startScreen);
-      setRandomHeroText(); 
     },
     { once: true }
   );

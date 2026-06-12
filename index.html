@@ -4,60 +4,50 @@
     <meta charset="UTF-8" />
     <title>Online Quiz</title>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="stylesheet" href="./style.css">
+    <link rel="stylesheet" href="style.css" />
    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-   <script src="./script.js" defer></script>
+    <script src="script.js" defer></script>
   </head>
   <body>
-   <!-- Start Screen -->
-<div id="start-screen" class="card card-enter">
-  <div class="start-hero">
-    <!-- LEFT SIDE: TEXT -->
-   <div class="start-hero-left">
-  <h1>Quiz Arcade</h1>
-  <!-- Small pill quote under the title -->
-  <span class="hero-badge" id="hero-badge"></span>
-</div>
+    <!-- Start Screen -->
+    <div id="start-screen" class="card card-enter">
+      <h1>Quiz</h1>
+      <p class="subtitle">
+     Choose a difficulty and start!
+      </p>
 
+      <!-- Difficulty Cards -->
+      <div class="difficulty-tabs">
+        <button
+          class="difficulty-btn mode-card"
+          data-difficulty="easy"
+        >
+          <div class="mode-title">Easy</div>
+          
+        </button>
 
-    <!-- RIGHT SIDE: VISUAL -->
-    <div class="start-hero-right">
-      <div class="hero-orbit">
-        <div class="orbit-ring orbit-ring-1"></div>
-        <div class="orbit-ring orbit-ring-2"></div>
-        <div class="orbit-dot orbit-dot-1"></div>
-        <div class="orbit-dot orbit-dot-2"></div>
-        <div class="orbit-core">?</div>
+        <button
+          class="difficulty-btn mode-card"
+          data-difficulty="medium"
+        >
+          <div class="mode-title">Medium</div>
+          
+        </button>
+
+        <button
+          class="difficulty-btn mode-card"
+          data-difficulty="hard"
+        >
+          <div class="mode-title">Hard</div>
+          
+        </button>
+      </div>
+
+     
+      <div class="start-btn-wrap">
+        <button id="start-btn">Start Quiz</button>
       </div>
     </div>
-  </div>
-
-  <p class="subtitle choose-subtitle">
-     Pick your challenge level:
-  </p>
-
-  <!-- Difficulty Cards -->
-  <div class="difficulty-tabs">
-    <button class="difficulty-btn mode-card" data-difficulty="easy">
-      <div class="mode-title">Easy</div>
-      
-    </button>
-
-    <button class="difficulty-btn mode-card" data-difficulty="medium">
-      <div class="mode-title">Medium</div>
-      
-    </button>
-
-    <button class="difficulty-btn mode-card" data-difficulty="hard">
-      <div class="mode-title">Hard</div>
-      
-    </button>
-  </div>
-
-  <div class="start-btn-wrap">
-    <button id="start-btn">Start Quiz</button>
-  </div>
-</div>
 
     <!-- Quiz Screen -->
     <div id="quiz-screen" class="card hidden">
@@ -67,6 +57,7 @@
           <span class="home-text">Home</span>
         </button>
         <h1 class="quiz-title">Quiz</h1>
+        
       </div>
 
       <div class="top-bar">
@@ -116,7 +107,4 @@
       </div>
     </div>
   </body>
-
 </html>
-
-
